@@ -28,16 +28,15 @@
   </build>  
   <dependencies>
     <dependency>
-    	<groupId>org.testng</groupId>
-    	<artifactId>testng</artifactId>
-    	<version>6.8.8</version>
-    	<scope>test</scope>
-    </dependency>
+	    <groupId>junit</groupId>
+	    <artifactId>junit</artifactId>
+    	<version>4.12</version>    
+    </dependency>		    
     <dependency>
-    	<groupId>org.easymock</groupId>
-    	<artifactId>easymock</artifactId>
-    	<version>3.2</version>
-    	<scope>test</scope>
-    </dependency>
+        <groupId>com.tngtech.java</groupId>
+        <artifactId>junit-dataprovider</artifactId>
+        <version>1.10.0</version>
+        <scope>test</scope>
+    </dependency>	    
   </dependencies>
 </project>
