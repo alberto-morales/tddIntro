@@ -1,5 +1,8 @@
 package eu.albertomorales.tddIntro.application.service;
 
+import com.tngtech.java.junit.dataprovider.DataProvider;
+import com.tngtech.java.junit.dataprovider.DataProviderRunner;
+import com.tngtech.java.junit.dataprovider.UseDataProvider;
 import eu.albertomorales.tddIntro.application.builder.impl.PersonBuilder;
 import eu.albertomorales.tddIntro.application.model.Person;
 import eu.albertomorales.tddIntro.application.model.impl.PersonImpl;
@@ -7,16 +10,14 @@ import eu.albertomorales.tddIntro.application.persistency.GenericDAO;
 import eu.albertomorales.tddIntro.application.service.impl.PersonServiceImpl;
 import eu.albertomorales.tddIntro.application.view.PersonDTO;
 import org.easymock.EasyMock;
-import org.easymock.EasyMockRunner;
-import org.easymock.Mock;
-import org.easymock.TestSubject;
+import static org.easymock.EasyMock.createNiceMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.junit.Assert.*;
 
-@RunWith(EasyMockRunner.class)
+@RunWith(DataProviderRunner.class)
 public class PersonServiceImplTest {
 
     @Before
@@ -30,33 +31,9 @@ public class PersonServiceImplTest {
         sut.guardar(null);
     }
 
-    @Test
-    public void guardarTestNoNulo() {
-        PersonServiceImpl sut = new PersonServiceImpl();
-        assertNotNull(sut.guardar(new PersonDTO(null,null)));
-    }
+    @DataProvider
+    public static Object[][] operacionesConMocks_DP() {
 
-    @Test
-    public void guardarTestNombreApellidos() {
-        String nombre = "Alberto";
-        String apellidos = "Morales";
-        PersonServiceImpl sut = new PersonServiceImpl();
-        Person resultado = sut.guardar(new PersonDTO(nombre, apellidos));
-        assertEquals(nombre, resultado.getFirstName());
-        assertEquals(apellidos, resultado.getLastName());
-    }
-
-    @Mock
-    GenericDAO<Person, Integer> personDAO;
-
-    @Mock
-    PersonBuilder personBuilder;
-
-    @TestSubject
-    PersonServiceImpl sutParaPersistir = new PersonServiceImpl();
-
-    @Test
-    public void guardarTestPersistir() {
         // setting up resources
         String nombre = "Alberto";
         String apellidos = "Morales";
@@ -65,22 +42,64 @@ public class PersonServiceImplTest {
         Person entidad = new PersonImpl();
         ((PersonImpl) entidad).setFirstName(nombre);
         ((PersonImpl) entidad).setLastName(apellidos);
-        EasyMock.expect(personBuilder.build(datosVista)).andReturn(entidad);
-        EasyMock.replay(personBuilder); //activate the mock
 
-        EasyMock.expect(personDAO.makePersistent(entidad)).andReturn(entidad);
-        EasyMock.replay(personDAO); //activate the mock
+        GenericDAO<Person, Integer> personDAOMock = createNiceMock(GenericDAO.class);
+
+        PersonBuilder personBuilderMock = createNiceMock(PersonBuilder.class);
+
+        EasyMock.expect(personBuilderMock.build(datosVista)).andReturn(entidad);
+        EasyMock.replay(personBuilderMock); //activate the mock
+
+        EasyMock.expect(personDAOMock.makePersistent(entidad)).andReturn(entidad);
+        EasyMock.replay(personDAOMock); //activate the mock
 
         // setting up sut
-        PersonServiceImpl sut = sutParaPersistir;
+        PersonServiceImpl sutConDependencias = new PersonServiceImpl();
+        sutConDependencias.setPersonBuilder(personBuilderMock);
+        sutConDependencias.setPersonDAO(personDAOMock);
+
+        return new Object[][] {
+                {nombre, apellidos, datosVista, entidad, personDAOMock, sutConDependencias}
+        };
+    }
+
+    @Test
+    @UseDataProvider("operacionesConMocks_DP")
+    public void guardarTestPersistir(String nombre,
+                                     String apellidos,
+                                     PersonDTO datosVista,
+                                     Person entidad,
+                                     GenericDAO<Person, Integer> personDAO,
+                                     PersonServiceImpl sut) {
 
         // test
         Person resultado = sut.guardar(datosVista);
-        // assertins
+        // assertions
+        EasyMock.verify(personDAO); //verify call to calcService is made or not
+    }
+
+    @Test
+    @UseDataProvider("operacionesConMocks_DP")
+    public void guardarTestNoNulo(String nombre,
+                                  String apellidos,
+                                  PersonDTO datosVista,
+                                  Person entidad,
+                                  GenericDAO<Person, Integer> personDAO,
+                                  PersonServiceImpl sut) {
+        assertNotNull(sut.guardar(datosVista));
+    }
+
+    @Test
+    @UseDataProvider("operacionesConMocks_DP")
+    public void guardarTestNombreApellidos(String nombre,
+                                           String apellidos,
+                                           PersonDTO datosVista,
+                                           Person entidad,
+                                           GenericDAO<Person, Integer> personDAO,
+                                           PersonServiceImpl sut) {
+        Person resultado = sut.guardar(datosVista);
         assertEquals(nombre, resultado.getFirstName());
         assertEquals(apellidos, resultado.getLastName());
-
-        EasyMock.verify(personDAO); //verify call to calcService is made or not
     }
 
 }

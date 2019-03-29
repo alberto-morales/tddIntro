@@ -1,6 +1,7 @@
 package eu.albertomorales.tddIntro.application.service.impl;
 
 import eu.albertomorales.tddIntro.application.model.Person;
+import eu.albertomorales.tddIntro.application.model.impl.PersonImpl;
 import eu.albertomorales.tddIntro.application.view.PersonDTO;
 import eu.albertomorales.tddIntro.application.service.PersonService;
 import eu.albertomorales.tddIntro.application.builder.impl.PersonBuilder;
@@ -13,25 +14,6 @@ public class PersonServiceImpl implements PersonService {
         if (datos == null) throw new IllegalArgumentException();
 
         Person result = personBuilder.build(datos);
-
-        /*
-        return new Person() {
-            @Override
-            public String getFirstName() {
-                return datos.getFirstName();
-            }
-
-            @Override
-            public String getLastName() {
-                return datos.getLastName();
-            }
-
-            @Override
-            public Integer getId() {
-                return null;
-            }
-        };
-        */
 
         personDAO.makePersistent(result);
 
