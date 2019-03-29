@@ -29,7 +29,7 @@ public class ModuloCalculoImplTest {
 	 public static Object[][] sumarMuchos_DP() {
 		 return new Object[][] {
 	         {4, 4, 8},
-	         {6, 33, 40},
+	         {6, 33, 39},
 	         {7, -14, -7}
 	     };
 	 }
